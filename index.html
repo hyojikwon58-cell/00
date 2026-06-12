@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Link</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg:#F7F6F3; --surface:#FFFFFF; --surface2:#F0EEE9; --border:#E2DED8;
+    --text:#1A1916; --text2:#6B6760; --text3:#A09C97;
+    --accent:#2A2825;
+    --green:#3D7A5A; --green-bg:#EAF3EE;
+    --yellow:#B8860B; --yellow-bg:#FDF6DC;
+    --red:#C0392B; --red-bg:#FDECEA;
+    --blue:#2C5F8A; --blue-bg:#EBF2F9;
+    --radius:10px; --shadow:0 1px 4px rgba(0,0,0,0.07);
+  }
+  body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:14px; }
+
+  /* LOGIN */
+  #login-screen {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg);
+  }
+  .login-box {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:48px 40px; width:360px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.06);
+    text-align:center;
+  }
+  .login-logo { font-family:'DM Mono',monospace; font-size:22px; font-weight:500; margin-bottom:6px; }
+  .login-sub { font-size:13px; color:var(--text2); margin-bottom:32px; }
+  .login-input {
+    width:100%; padding:12px 14px; border:1.5px solid var(--border);
+    border-radius:8px; font-family:'Noto Sans KR',sans-serif; font-size:14px;
+    color:var(--text); background:var(--bg); outline:none; margin-bottom:12px;
+    transition:border-color 0.15s; text-align:center; letter-spacing:2px;
+  }
+  .login-input:focus { border-color:var(--accent); background:#fff; }
+  .login-btn {
+    width:100%; padding:13px; background:var(--accent); color:#fff;
+    border:none; border-radius:8px; font-family:'Noto Sans KR',sans-serif;
+    font-size:14px; font-weight:500; cursor:pointer;
+  }
+  .login-btn:hover { opacity:0.88; }
+  .login-hint { font-size:11px; color:var(--text3); margin-top:16px; }
+  .login-error { color:var(--red); font-size:12px; margin-top:8px; }
+
+  /* APP */
+  #app { display:none; }
+  .app-header {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:0 24px; display:flex; align-items:center; height:56px;
+    position:sticky; top:0; z-index:100;
+  }
+  .header-logo { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; margin-right:32px; }
+  .nav-tabs { display:flex; gap:2px; flex:1; }
+  .nav-tab {
+    padding:6px 16px; border-radius:6px; font-size:13px; font-weight:500;
+    color:var(--text2); cursor:pointer; border:none; background:transparent;
+    font-family:'Noto Sans KR',sans-serif; transition:all 0.15s;
+  }
+  .nav-tab.active, .nav-tab:hover { background:var(--surface2); color:var(--text); }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .user-badge { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:12px; font-weight:500; }
+  .logout-btn { background:none; border:none; color:var(--text3); font-size:12px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+
+  .content { padding:28px 24px; max-width:1100px; margin:0 auto; }
+  .page { display:none; }
+  .page.active { display:block; }
+  .page-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .page-title { font-size:18px; font-weight:600; }
+
+  /* CARDS */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .card-header { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-title { font-size:13px; font-weight:600; }
+  .card-body { padding:16px 20px; }
+
+  /* BUTTONS */
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:7px; font-family:'Noto Sans KR',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all 0.15s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { opacity:0.88; }
+  .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+  .btn-outline:hover { background:var(--surface2); }
+  .btn-sm { padding:5px 11px; font-size:12px; }
+  .btn-danger { background:transparent; border:1.5px solid var(--border); color:var(--red); }
+  .btn-danger:hover { background:var(--red-bg); border-color:var(--red); }
+
+  /* BADGES */
+  .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-pending { background:var(--yellow-bg); color:var(--yellow); }
+  .badge-progress { background:var(--blue-bg); color:var(--blue); }
+  .badge-done { background:var(--green-bg); color:var(--green); }
+  .badge-hold { background:var(--surface2); color:var(--text2); }
+  .badge-ordered { background:var(--yellow-bg); color:var(--yellow); }
+  .badge-producing { background:var(--blue-bg); color:var(--blue); }
+  .badge-shipped { background:#EEF0FF; color:#4A5FD4; }
+  .badge-received { background:var(--green-bg); color:var(--green); }
+
+  /* STATS */
+  .stat-row { display:flex; gap:12px; margin-bottom:20px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; flex:1; box-shadow:var(--shadow); }
+  .stat-label { font-size:11px; font-weight:600; color:var(--text3); letter-spacing:0.4px; margin-bottom:4px; }
+  .stat-value { font-size:22px; font-weight:600; font-family:'DM Mono',monospace; }
+
+  /* TASKS */
+  .task-list { display:flex; flex-direction:column; gap:10px; }
+  .task-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; display:flex; align-items:flex-start; gap:14px; box-shadow:var(--shadow); }
+  .task-main { flex:1; min-width:0; }
+  .task-title-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; flex-wrap:wrap; }
+  .task-name { font-size:14px; font-weight:500; }
+  .task-desc { font-size:13px; color:var(--text2); margin-bottom:6px; line-height:1.55; }
+  .task-meta { font-size:12px; color:var(--text3); display:flex; gap:12px; flex-wrap:wrap; }
+  .task-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+  .urgent-tag { font-size:11px; color:var(--red); font-weight:600; }
+
+  /* FORMS */
+  .form-group { margin-bottom:16px; }
+  label { display:block; font-size:12px; font-weight:600; color:var(--text2); margin-bottom:6px; letter-spacing:0.3px; }
+  input[type="text"], input[type="date"], textarea, select {
+    width:100%; padding:10px 13px; border:1.5px solid var(--border);
+    border-radius:7px; font-family:'Noto Sans KR',sans-serif; font-size:13px;
+    color:var(--text); background:var(--bg); outline:none; transition:border-color 0.15s;
+  }
+  input:focus, textarea:focus, select:focus { border-color:var(--accent); background:#fff; }
+  textarea { resize:vertical; min-height:90px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border-radius:14px; width:500px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
+  .modal-header { padding:20px 24px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-title { font-size:15px; font-weight:600; }
+  .modal-close { background:none; border:none; font-size:22px; color:var(--text3); cursor:pointer; line-height:1; padding:0 4px; }
+  .modal-body { padding:20px 24px; }
+  .modal-footer { padding:12px 24px 20px; display:flex; gap:8px; justify-content:flex-end; }
+
+  /* CALENDAR */
+  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .cal-title { font-size:16px; font-weight:600; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal-day-label { text-align:center; font-size:11px; font-weight:600; color:var(--text3); padding:6px 0; }
+  .cal-cell { min-height:76px; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:5px; }
+  .cal-cell.other-month { background:var(--bg); opacity:0.45; }
+  .cal-cell.today { border-color:var(--accent); border-width:2px; }
+  .cal-date { font-size:11px; font-weight:600; color:var(--text2); margin-bottom:3px; }
+  .cal-cell.today .cal-date { color:var(--accent); }
+  .cal-event { font-size:10px; background:var(--accent); color:#fff; border-radius:3px; padding:1px 5px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cal-event.deadline { background:var(--red); }
+  .cal-event.order { background:var(--green); }
+
+  /* ORDERS */
+  .orders-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .vendor-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+  .vendor-header { padding:12px 16px; background:var(--surface2); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .vendor-name { font-size:13px; font-weight:600; }
+  .order-row { padding:10px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:13px; }
+  .order-row:last-child { border-bottom:none; }
+  .order-item { flex:1; font-weight:500; }
+  .order-amount { font-family:'DM Mono',monospace; font-size:12px; color:var(--text2); }
+
+  /* FILE */
+  .file-label { display:block; border:1.5px dashed var(--border); border-radius:7px; padding:12px; text-align:center; color:var(--text3); font-size:12px; cursor:pointer; }
+  .file-label:hover { border-color:var(--accent); color:var(--text2); }
+
+  /* EMPTY */
+  .empty { text-align:center; padding:40px 20px; color:var(--text3); font-size:13px; }
+  .empty-icon { font-size:28px; margin-bottom:8px; }
+
+  @media(max-width:700px) {
+    .orders-grid, .grid-2 { grid-template-columns:1fr; }
+    .stat-row { flex-wrap:wrap; }
+    .content { padding:14px; }
+    .app-header { padding:0 14px; }
+    .cal-cell { min-height:52px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- APP -->
+<div id="app" style="display:block;">
+  <header class="app-header">
+    <div class="header-logo">studio link</div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('tasks',this)">업무 요청</button>
+      <button class="nav-tab" onclick="showPage('calendar',this)">일정</button>
+      <button class="nav-tab" onclick="showPage('orders',this)">주문 내역</button>
+    </nav>
+
+  </header>
+
+  <div class="content">
+
+    <!-- TASKS -->
+    <div class="page active" id="page-tasks">
+      <div class="page-top">
+        <div class="page-title">업무 요청</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="filter-status" style="width:auto;padding:7px 12px;font-size:12px;" onchange="renderTasks()">
+            <option value="">전체</option>
+            <option value="pending">대기</option>
+            <option value="progress">진행 중</option>
+            <option value="done">완료</option>
+            <option value="hold">보류</option>
+          </select>
+          <button class="btn btn-primary" onclick="openTaskModal()">+ 요청 등록</button>
+        </div>
+      </div>
+      <div class="stat-row" id="task-stats"></div>
+      <div class="task-list" id="task-list"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="page" id="page-calendar">
+      <div class="page-top">
+        <div class="page-title">일정</div>
+        <button class="btn btn-primary" onclick="openEventModal()">+ 일정 추가</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+        <div class="card">
+          <div class="card-body" style="padding:20px;">
+            <div class="cal-header">
+              <button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">‹</button>
+              <div class="cal-title" id="cal-title"></div>
+              <button class="btn btn-outline btn-sm" onclick="changeMonth(1)">›</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">이번 달 일정</div></div>
+          <div id="event-list" style="padding:8px 16px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="page" id="page-orders">
+      <div class="page-top">
+        <div class="page-title">주문 내역</div>
+        <button class="btn btn-primary" onclick="openOrderModal()">+ 주문 추가</button>
+      </div>
+      <div id="orders-container"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="task-modal-title">업무 요청 등록</div>
+      <button class="modal-close" onclick="closeModal('modal-task')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>제목</label><input type="text" id="task-title" placeholder="업무 제목" /></div>
+      <div class="form-group"><label>상세 내용</label><textarea id="task-desc" placeholder="요청 내용, 참고사항 등"></textarea></div>
+      <div class="grid-2">
+        <div class="form-group"><label>마감일</label><input type="date" id="task-deadline" /></div>
+        <div class="form-group"><label>우선순위</label>
+          <select id="task-priority"><option value="normal">보통</option><option value="urgent">긴급</option><option value="low">낮음</option></select>
+        </div>
+      </div>
+      <div class="form-group" id="task-status-group" style="display:none;"><label>상태</label>
+        <select id="task-status">
+          <option value="pending">대기</option><option value="progress">진행 중</option>
+          <option value="done">완료</option><option value="hold">보류</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>첨부파일</label>
+        <label class="file-label" for="task-file">📎 파일 선택</label>
+        <input type="file" id="task-file" style="display:none;" onchange="this.nextElementSibling.textContent = this.files[0]?.name || ''" />
+        <div id="file-name" style="font-size:12px;color:var(--text2);margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-task')">취소</button>
+      <button class="btn btn-primary" onclick="saveTask()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">일정 추가</div>
+      <button class="modal-close" onclick="closeModal('modal-event')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>제목</label><input type="text" id="event-title" placeholder="예: 1차 시안 전달, 인쇄 납기일" /></div>
+      <div class="grid-2">
+        <div class="form-group"><label>날짜</label><input type="date" id="event-date" /></div>
+        <div class="form-group"><label>유형</label>
+          <select id="event-type">
+            <option value="schedule">일반 일정</option>
+            <option value="deadline">마감일</option>
+            <option value="order">발주/납기</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>메모</label><textarea id="event-memo" placeholder="추가 메모" style="min-height:60px;"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-event')">취소</button>
+      <button class="btn btn-primary" onclick="saveEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="modal-order">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">주문 추가</div>
+      <button class="modal-close" onclick="closeModal('modal-order')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>업체명</label><input type="text" id="order-vendor" placeholder="예: 인쇄소, 포장재 업체" /></div>
+      <div class="form-group"><label>주문 항목</label><input type="text" id="order-item" placeholder="예: 스티커 300장" /></div>
+      <div class="grid-2">
+        <div class="form-group"><label>주문일</label><input type="date" id="order-date" /></div>
+        <div class="form-group"><label>금액</label><input type="text" id="order-amount" placeholder="예: 150,000" /></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label>납기 예정일</label><input type="date" id="order-delivery" /></div>
+        <div class="form-group"><label>상태</label>
+          <select id="order-status">
+            <option value="ordered">주문 완료</option>
+            <option value="producing">제작 중</option>
+            <option value="shipped">배송 중</option>
+            <option value="received">입고 완료</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>메모</label><textarea id="order-memo" placeholder="색상, 사양, 담당자 등" style="min-height:60px;"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-order')">취소</button>
+      <button class="btn btn-primary" onclick="saveOrder()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ACCESS_CODE = 'studio0';
+let tasks  = JSON.parse(localStorage.getItem('sl_tasks')  || '[]');
+let events = JSON.parse(localStorage.getItem('sl_events') || '[]');
+let orders = JSON.parse(localStorage.getItem('sl_orders') || '[]');
+let editingTaskId = null;
+let calMonth = new Date().getMonth();
+let calYear  = new Date().getFullYear();
+
+function save() {
+  localStorage.setItem('sl_tasks',  JSON.stringify(tasks));
+  localStorage.setItem('sl_events', JSON.stringify(events));
+  localStorage.setItem('sl_orders', JSON.stringify(orders));
+}
+
+
+// NAV
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='calendar') renderCalendar();
+  if(name==='orders') renderOrders();
+}
+
+// TASKS
+const STATUS_MAP = { pending:'대기', progress:'진행 중', done:'완료', hold:'보류' };
+
+function openTaskModal(id) {
+  editingTaskId = id || null;
+  document.getElementById('task-modal-title').textContent = id ? '업무 요청 수정' : '업무 요청 등록';
+  document.getElementById('task-status-group').style.display = id ? 'block' : 'none';
+  document.getElementById('file-name').textContent = '';
+  if (id) {
+    const t = tasks.find(x=>x.id===id);
+    document.getElementById('task-title').value = t.title;
+    document.getElementById('task-desc').value = t.desc;
+    document.getElementById('task-deadline').value = t.deadline || '';
+    document.getElementById('task-priority').value = t.priority;
+    document.getElementById('task-status').value = t.status;
+    if(t.fileName) document.getElementById('file-name').textContent = '📎 '+t.fileName;
+  } else {
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value = '';
+    document.getElementById('task-deadline').value = '';
+    document.getElementById('task-priority').value = 'normal';
+  }
+  document.getElementById('modal-task').classList.add('open');
+}
+
+function saveTask() {
+  const title = document.getElementById('task-title').value.trim();
+  if(!title) { alert('제목을 입력해주세요'); return; }
+  const fileInput = document.getElementById('task-file');
+  const newFileName = fileInput.files[0] ? fileInput.files[0].name : '';
+  if(editingTaskId) {
+    const t = tasks.find(x=>x.id===editingTaskId);
+    t.title = title;
+    t.desc = document.getElementById('task-desc').value;
+    t.deadline = document.getElementById('task-deadline').value;
+    t.priority = document.getElementById('task-priority').value;
+    t.status = document.getElementById('task-status').value;
+    if(newFileName) t.fileName = newFileName;
+  } else {
+    tasks.unshift({
+      id: Date.now().toString(),
+      title, desc: document.getElementById('task-desc').value,
+      deadline: document.getElementById('task-deadline').value,
+      priority: document.getElementById('task-priority').value,
+      status: 'pending', fileName: newFileName,
+      createdAt: new Date().toISOString().slice(0,10)
+    });
+  }
+  save(); renderTasks(); closeModal('modal-task');
+}
+
+function deleteTask(id) {
+  if(!confirm('삭제할까요?')) return;
+  tasks = tasks.filter(x=>x.id!==id); save(); renderTasks();
+}
+
+function quickStatus(id, val) {
+  const t = tasks.find(x=>x.id===id);
+  if(t) { t.status = val; save(); renderTasks(); }
+}
+
+function renderTasks() {
+  const filter = document.getElementById('filter-status').value;
+  const filtered = filter ? tasks.filter(t=>t.status===filter) : tasks;
+  const stats = {pending:0,progress:0,done:0,hold:0};
+  tasks.forEach(t=>stats[t.status]++);
+  document.getElementById('task-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">전체</div><div class="stat-value">${tasks.length}</div></div>
+    <div class="stat-card"><div class="stat-label">대기</div><div class="stat-value" style="color:var(--yellow)">${stats.pending}</div></div>
+    <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-value" style="color:var(--blue)">${stats.progress}</div></div>
+    <div class="stat-card"><div class="stat-label">완료</div><div class="stat-value" style="color:var(--green)">${stats.done}</div></div>
+  `;
+  const list = document.getElementById('task-list');
+  if(!filtered.length) { list.innerHTML='<div class="empty"><div class="empty-icon">📋</div>요청이 없어요</div>'; return; }
+  list.innerHTML = filtered.map(t => `
+    <div class="task-item">
+      <div class="task-main">
+        <div class="task-title-row">
+          <span class="badge badge-${t.status}">${STATUS_MAP[t.status]}</span>
+          <span class="task-name">${t.title}</span>
+          ${t.priority==='urgent' ? '<span class="urgent-tag">🔴 긴급</span>' : ''}
+        </div>
+        ${t.desc ? `<div class="task-desc">${t.desc}</div>` : ''}
+        <div class="task-meta">
+          ${t.deadline ? `<span>📅 ${t.deadline}</span>` : ''}
+          ${t.fileName ? `<span>📎 ${t.fileName}</span>` : ''}
+          <span>등록: ${t.createdAt}</span>
+        </div>
+      </div>
+      <div class="task-actions">
+        <select style="padding:4px 8px;font-size:12px;border-radius:5px;border:1px solid var(--border);background:var(--bg);font-family:'Noto Sans KR',sans-serif;" onchange="quickStatus('${t.id}',this.value)">
+          ${['pending','progress','done','hold'].map(s=>`<option value="${s}"${t.status===s?' selected':''}>${STATUS_MAP[s]}</option>`).join('')}
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="openTaskModal('${t.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">삭제</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// CALENDAR
+function openEventModal() {
+  ['title','memo'].forEach(f=>document.getElementById('event-'+f).value='');
+  document.getElementById('event-date').value='';
+  document.getElementById('event-type').value='schedule';
+  document.getElementById('modal-event').classList.add('open');
+}
+function saveEvent() {
+  const title = document.getElementById('event-title').value.trim();
+  const date = document.getElementById('event-date').value;
+  if(!title||!date) { alert('제목과 날짜를 입력해주세요'); return; }
+  events.push({ id:Date.now().toString(), title, date, type:document.getElementById('event-type').value, memo:document.getElementById('event-memo').value });
+  save(); renderCalendar(); closeModal('modal-event');
+}
+function deleteEvent(id) { events=events.filter(x=>x.id!==id); save(); renderCalendar(); }
+function changeMonth(d) {
+  calMonth+=d;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+function renderCalendar() {
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-title').textContent=`${calYear}년 ${months[calMonth]}`;
+  const today=new Date();
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const prevDays=new Date(calYear,calMonth,0).getDate();
+  const days=['일','월','화','수','목','금','토'];
+  let html=days.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-cell other-month"><div class="cal-date">${prevDays-firstDay+1+i}</div></div>`;
+  for(let d=1;d<=daysInMonth;d++) {
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
+    const de=events.filter(e=>e.date===ds);
+    const dt=tasks.filter(t=>t.deadline===ds);
+    let ev=de.map(e=>`<div class="cal-event ${e.type==='deadline'?'deadline':e.type==='order'?'order':''}">${e.title}</div>`).join('');
+    ev+=dt.map(t=>`<div class="cal-event deadline">마감: ${t.title}</div>`).join('');
+    html+=`<div class="cal-cell${isToday?' today':''}"><div class="cal-date">${d}</div>${ev}</div>`;
+  }
+  const rem=42-firstDay-daysInMonth;
+  for(let d=1;d<=rem&&rem<7;d++) html+=`<div class="cal-cell other-month"><div class="cal-date">${d}</div></div>`;
+  document.getElementById('cal-grid').innerHTML=html;
+
+  const pad=n=>String(n).padStart(2,'0');
+  const prefix=`${calYear}-${pad(calMonth+1)}`;
+  const me=events.filter(e=>e.date&&e.date.startsWith(prefix));
+  const mt=tasks.filter(t=>t.deadline&&t.deadline.startsWith(prefix));
+  const all=[...me.map(e=>({...e,_ev:true})),...mt.map(t=>({id:t.id,title:'마감: '+t.title,date:t.deadline,type:'deadline',_ev:false}))].sort((a,b)=>a.date.localeCompare(b.date));
+  const tc={schedule:'var(--accent)',deadline:'var(--red)',order:'var(--green)'};
+  const el=document.getElementById('event-list');
+  if(!all.length){el.innerHTML='<div class="empty" style="padding:20px;"><div class="empty-icon">📅</div>이번 달 일정 없음</div>';return;}
+  el.innerHTML=all.map(item=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);min-width:28px;">${item.date.slice(8)}일</span>
+      <span style="width:6px;height:6px;border-radius:50%;background:${tc[item.type]||'var(--accent)'};flex-shrink:0;"></span>
+      <span style="flex:1;font-size:13px;">${item.title}</span>
+      ${item._ev ? `<button class="btn btn-danger btn-sm" style="padding:2px 8px;" onclick="deleteEvent('${item.id}')">×</button>` : ''}
+    </div>
+  `).join('');
+}
+
+// ORDERS
+const OS={ordered:'주문 완료',producing:'제작 중',shipped:'배송 중',received:'입고 완료'};
+function openOrderModal() {
+  ['vendor','item','date','amount','delivery','memo'].forEach(f=>document.getElementById('order-'+f).value='');
+  document.getElementById('order-status').value='ordered';
+  document.getElementById('modal-order').classList.add('open');
+}
+function saveOrder() {
+  const vendor=document.getElementById('order-vendor').value.trim();
+  const item=document.getElementById('order-item').value.trim();
+  if(!vendor||!item){alert('업체명과 항목을 입력해주세요');return;}
+  orders.unshift({id:Date.now().toString(),vendor,item,date:document.getElementById('order-date').value,amount:document.getElementById('order-amount').value,delivery:document.getElementById('order-delivery').value,status:document.getElementById('order-status').value,memo:document.getElementById('order-memo').value});
+  save(); renderOrders(); closeModal('modal-order');
+}
+function updateOrderStatus(id,val){const o=orders.find(x=>x.id===id);if(o){o.status=val;save();renderOrders();}}
+function deleteOrder(id){if(!confirm('삭제할까요?'))return;orders=orders.filter(x=>x.id!==id);save();renderOrders();}
+function renderOrders() {
+  const c=document.getElementById('orders-container');
+  if(!orders.length){c.innerHTML='<div class="empty"><div class="empty-icon">📦</div>주문 내역이 없어요</div>';return;}
+  const vendors=[...new Set(orders.map(o=>o.vendor))];
+  c.innerHTML=`<div class="orders-grid">`+vendors.map(v=>{
+    const vo=orders.filter(o=>o.vendor===v);
+    return `<div class="vendor-card">
+      <div class="vendor-header"><div class="vendor-name">📦 ${v}</div><span style="font-size:11px;color:var(--text3);">${vo.length}건</span></div>
+      ${vo.map(o=>`<div class="order-row">
+        <div class="order-item">${o.item}</div>
+        <select style="padding:3px 7px;font-size:11px;border-radius:4px;border:1px solid var(--border);background:var(--bg);font-family:'Noto Sans KR',sans-serif;" onchange="updateOrderStatus('${o.id}',this.value)">
+          ${['ordered','producing','shipped','received'].map(s=>`<option value="${s}"${o.status===s?' selected':''}>${OS[s]}</option>`).join('')}
+        </select>
+        ${o.amount?`<div class="order-amount">₩${o.amount}</div>`:''}
+        <button class="btn btn-danger btn-sm" style="padding:2px 8px;" onclick="deleteOrder('${o.id}')">×</button>
+      </div>`).join('')}
+    </div>`;
+  }).join('')+`</div>`;
+}
+
+// UTILS
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+</script>
+</body>
+</html>
