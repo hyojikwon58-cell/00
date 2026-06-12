@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Studio Link</title>
+<title>Izza & 보따리</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -135,12 +135,13 @@
 <body>
 
 <header class="app-header">
-  <div class="header-logo">studio link</div>
+  <div class="header-logo">izza &amp; 보따리</div>
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('tasks',this)">업무 요청</button>
     <button class="nav-tab" onclick="showPage('calendar',this)">일정</button>
     <button class="nav-tab" onclick="showPage('orders',this)">주문 내역</button>
   </nav>
+  <button class="btn btn-outline btn-sm" onclick="location.reload()" style="margin-left:8px;font-size:12px;">↻ 새로고침</button>
 </header>
 
 <div class="content">
@@ -150,8 +151,14 @@
     <div class="page-top">
       <div class="page-title">업무 요청</div>
       <div style="display:flex;gap:8px;align-items:center;">
+        <select id="filter-brand" style="width:auto;padding:7px 12px;font-size:12px;" onchange="renderTasks()">
+          <option value="">전체 브랜드</option>
+          <option value="izza">Izza</option>
+          <option value="bottari">보따리타코</option>
+          <option value="both">Izza &amp; 보따리 공통</option>
+        </select>
         <select id="filter-status" style="width:auto;padding:7px 12px;font-size:12px;" onchange="renderTasks()">
-          <option value="">전체</option>
+          <option value="">전체 상태</option>
           <option value="pending">대기</option>
           <option value="progress">진행 중</option>
           <option value="done">완료</option>
@@ -207,6 +214,13 @@
       <button class="modal-close" onclick="closeModal('modal-task')">×</button>
     </div>
     <div class="modal-body">
+      <div class="form-group"><label>브랜드</label>
+        <select id="task-brand">
+          <option value="izza">Izza</option>
+          <option value="bottari">보따리타코</option>
+          <option value="both">Izza &amp; 보따리 공통</option>
+        </select>
+      </div>
       <div class="form-group"><label>제목</label><input type="text" id="task-title" placeholder="업무 제목" /></div>
       <div class="form-group"><label>상세 내용</label><textarea id="task-desc" placeholder="요청 내용, 참고사항 등"></textarea></div>
       <div class="grid-2">
@@ -282,6 +296,12 @@
           </select>
         </div>
       </div>
+      <div class="form-group"><label>입금 상태</label>
+        <select id="order-payment">
+          <option value="unpaid">입금 전</option>
+          <option value="paid">입금 완료</option>
+        </select>
+      </div>
       <div class="form-group"><label>메모</label><textarea id="order-memo" placeholder="색상, 사양, 담당자 등" style="min-height:60px;"></textarea></div>
     </div>
     <div class="modal-footer">
@@ -354,12 +374,14 @@ window.openTaskModal = (id) => {
     document.getElementById('task-desc').value = t.desc||'';
     document.getElementById('task-deadline').value = t.deadline||'';
     document.getElementById('task-priority').value = t.priority||'normal';
+    document.getElementById('task-brand').value = t.brand||'izza';
     document.getElementById('task-status').value = t.status||'pending';
   } else {
     document.getElementById('task-title').value = '';
     document.getElementById('task-desc').value = '';
     document.getElementById('task-deadline').value = '';
     document.getElementById('task-priority').value = 'normal';
+    document.getElementById('task-brand').value = 'izza';
   }
   document.getElementById('modal-task').classList.add('open');
 };
@@ -371,6 +393,7 @@ window.saveTask = async () => {
     title, desc: document.getElementById('task-desc').value,
     deadline: document.getElementById('task-deadline').value,
     priority: document.getElementById('task-priority').value,
+    brand: document.getElementById('task-brand').value,
   };
   if(editingTaskId) {
     data.status = document.getElementById('task-status').value;
@@ -394,7 +417,9 @@ window.quickStatus = async (id, val) => {
 
 function renderTasks() {
   const filter = document.getElementById('filter-status').value;
-  const filtered = filter ? tasks.filter(t=>t.status===filter) : tasks;
+  const brandFilter = document.getElementById('filter-brand').value;
+  let filtered = brandFilter ? tasks.filter(t=>t.brand===brandFilter) : tasks;
+  if(filter) filtered = filtered.filter(t=>t.status===filter);
   const stats = {pending:0,progress:0,done:0,hold:0};
   tasks.forEach(t=>{ if(stats[t.status]!==undefined) stats[t.status]++; });
   document.getElementById('task-stats').innerHTML = `
@@ -409,6 +434,7 @@ function renderTasks() {
     <div class="task-item">
       <div class="task-main">
         <div class="task-title-row">
+          ${t.brand==='izza' ? '<span class="badge" style="background:#FFF0E6;color:#C85000;">Izza</span>' : t.brand==='bottari' ? '<span class="badge" style="background:#E8F4E8;color:#2D6A2D;">보따리</span>' : '<span class="badge" style="background:#EEF0FF;color:#4A5FD4;">공통</span>'}
           <span class="badge badge-${t.status}">${STATUS_MAP[t.status]||t.status}</span>
           <span class="task-name">${t.title}</span>
           ${t.priority==='urgent' ? '<span style="font-size:11px;color:var(--red);font-weight:600;">🔴 긴급</span>' : ''}
@@ -505,6 +531,7 @@ function renderCalendar() {
 // ORDERS
 window.openOrderModal = () => {
   ['vendor','item','date','amount','delivery','memo'].forEach(f=>document.getElementById('order-'+f).value='');
+  document.getElementById('order-payment').value='unpaid';
   document.getElementById('order-status').value='ordered';
   document.getElementById('modal-order').classList.add('open');
 };
@@ -520,6 +547,7 @@ window.saveOrder = async () => {
     delivery: document.getElementById('order-delivery').value,
     status: document.getElementById('order-status').value,
     memo: document.getElementById('order-memo').value,
+    payment: document.getElementById('order-payment').value,
     createdAt: new Date().toISOString()
   });
   closeModal('modal-order');
@@ -527,6 +555,10 @@ window.saveOrder = async () => {
 
 window.updateOrderStatus = async (id,val) => {
   await updateDoc(doc(db,'orders',id), {status:val});
+};
+
+window.updateOrderPayment = async (id,val) => {
+  await updateDoc(doc(db,'orders',id), {payment:val});
 };
 
 window.deleteOrder = async (id) => {
@@ -548,6 +580,8 @@ function renderOrders() {
           ${['ordered','producing','shipped','received'].map(s=>`<option value="${s}"${o.status===s?' selected':''}>${OS[s]}</option>`).join('')}
         </select>
         ${o.amount?`<div class="order-amount">₩${o.amount}</div>`:''}
+        <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;background:${o.payment==='paid'?'var(--green-bg)':'var(--yellow-bg)'};color:${o.payment==='paid'?'var(--green)':'var(--yellow)'}">${o.payment==='paid'?'입금완료':'입금전'}</span>
+        <button onclick="updateOrderPayment('${o.id}', o.payment==='paid'?'unpaid':'paid')" style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;border:none;cursor:pointer;background:${o.payment==='paid'?'var(--green-bg)':'var(--yellow-bg)'};color:${o.payment==='paid'?'var(--green)':'var(--yellow)'}">${o.payment==='paid'?'입금완료':'입금전'}</button>
         <button class="btn btn-danger btn-sm" style="padding:2px 8px;" onclick="deleteOrder('${o.id}')">×</button>
       </div>`).join('')}
     </div>`;
